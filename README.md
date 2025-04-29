@@ -1,7 +1,3 @@
-Here’s a polished `README.md` you can use for your GitHub project, filled with emojis and an open invitation for contributors:
-
----
-
 # 🤖 Chatbot
 
 Welcome to the **Chatbot** project! 🚀
