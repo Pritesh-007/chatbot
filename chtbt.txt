@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Persistent Chatbot</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+<style>
+:root {
+  --primary-color: #4a6bff;
+  --secondary-color: #f5f7ff;
+  --bot-bubble: #f0f2f5;
+  --user-bubble: var(--primary-color);
+  --bot-text: #333;
+  --user-text: #fff;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { background: #f9f9f9; font-family: 'Segoe UI', sans-serif; }
+.chatbot-icon {
+  position: fixed;
+  bottom: 30px;
+  right: 30px;
+  width: 60px;
+  height: 60px;
+  background: var(--primary-color);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 1001;
+  transition: transform 0.3s;
+}
+.chatbot-icon:hover { transform: scale(1.1); }
+.chatbot-icon.active { opacity: 0; transform: scale(0); }
+.chatbot-container {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  width: 350px;
+  height: 500px;
+  background: #fff;
+  border-radius: 15px;
+  box-shadow: 0 5px 25px rgba(0,0,0,0.1);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  transform: translateY(20px) scale(0.95);
+  opacity: 0;
+  pointer-events: none;
+  transition: all 0.3s cubic-bezier(0.175,0.885,0.32,1.275);
+  z-index: 1000;
+}
+.chatbot-container.active {
+  transform: translateY(0) scale(1);
+  opacity: 1;
+  pointer-events: auto;
+}
+.chatbot-header {
+  background: var(--primary-color);
+  color: #fff;
+  padding: 15px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.chatbot-header h3 { font-weight: 600; }
+.chatbot-close {
+  background: none;
+  border: none;
+  color: #fff;
+  font-size: 20px;
+  cursor: pointer;
+  transition: transform 0.2s;
+}
+.chatbot-close:hover { transform: rotate(90deg); }
+.chatbot-messages {
+  flex: 1;
+  padding: 15px;
+  background: var(--secondary-color);
+  overflow-y: auto;
+  scroll-behavior: smooth;
+}
+.message {
+  position: relative;
+  margin-bottom: 15px;
+  display: flex;
+  flex-direction: column;
+  max-width: 80%;
+  opacity: 0;
+  transform: translateY(10px);
+  transition: all 0.3s ease;
+}
+.message.visible { opacity: 1; transform: translateY(0); }
+.message-content {
+  padding: 10px 15px;
+  border-radius: 18px;
+  line-height: 1.4;
+  font-size: 14px;
+  position: relative;
+  background: var(--bot-bubble);
+  color: var(--bot-text);
+}
+.bot .message-content {
+  background: var(--bot-bubble);
+  color: var(--bot-text);
+  border-top-left-radius: 5px;
+}
+.bot .message-content::after {
+  content: '';
+  position: absolute;
+  top: 12px;
+  left: -8px;
+  border: 8px solid transparent;
+  border-right-color: var(--bot-bubble);
+}
+.user .message-content {
+  background: var(--user-bubble);
+  color: var(--user-text);
+  border-top-right-radius: 5px;
+  margin-left: auto;
+}
+.user .message-content::after {
+  content: '';
+  position: absolute;
+  top: 12px;
+  right: -8px;
+  border: 8px solid transparent;
+  border-left-color: var(--user-bubble);
+}
+.message-time {
+  font-size: 11px;
+  color: #999;
+  opacity: 0;
+  transition: opacity 0.3s 0.2s;
+  margin-top: 4px;
+  align-self: flex-end;
+}
+.message.visible .message-time { opacity: 1; }
+.typing-indicator {
+  display: flex;
+  padding: 10px 15px;
+  background: var(--bot-bubble);
+  border-radius: 18px;
+  margin-bottom: 15px;
+  opacity: 0;
+  transform: scale(0.9);
+  animation: typingAppear 0.3s ease forwards;
+}
+@keyframes typingAppear { to { opacity: 1; transform: scale(1); } }
+.typing-dot {
+  width: 8px;
+  height: 8px;
+  background: #aaa;
+  border-radius: 50%;
+  margin: 0 2px;
+  animation: typingAnim 1.4s infinite ease-in-out;
+}
+@keyframes typingAnim { 0%,60%,100% { transform: translateY(0); } 30% { transform: translateY(-5px); } }
+.chatbot-input-area {
+  display: flex;
+  padding: 15px;
+  border-top: 1px solid #eee;
+  background: #fff;
+}
+.chatbot-input {
+  flex: 1;
+  padding: 10px 15px;
+  border-radius: 25px;
+  border: 1px solid #ddd;
+  outline: none;
+  font-size: 14px;
+  transition: all 0.3s;
+}
+.chatbot-input:focus {
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 2px rgba(74,107,255,0.2);
+}
+.chatbot-send {
+  width: 40px;
+  height: 40px;
+  margin-left: 10px;
+  border: none;
+  border-radius: 50%;
+  background: var(--primary-color);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.chatbot-send:hover { transform: scale(1.05); background: #3a5bef; }
+.chatbot-send:active { transform: scale(0.95); }
+@media (max-width: 480px) {
+  .chatbot-container { width:100%; height:100%; bottom:0; right:0; border-radius:0; }
+  .chatbot-icon { bottom:20px; right:20px; }
+}
+</style>
+</head>
+<body>
+<div class="chatbot-icon" id="chatbotIcon" aria-label="Open chat">
+  <i class="fas fa-comment"></i>
+</div>
+<div class="chatbot-container" id="chatbotContainer">
+  <div class="chatbot-header">
+    <h3>AI Assistant</h3>
+    <button class="chatbot-close" id="chatbotClose">×</button>
+  </div>
+  <div class="chatbot-messages" id="chatbotMessages"></div>
+  <div class="chatbot-input-area">
+    <input id="chatbotInput" class="chatbot-input" placeholder="Type your message…">
+    <button id="chatbotSend" class="chatbot-send"><i class="fas fa-paper-plane"></i></button>
+  </div>
+</div>
+<script>
+(function() {
+const icon = document.getElementById('chatbotIcon');
+const container = document.getElementById('chatbotContainer');
+const closeBtn = document.getElementById('chatbotClose');
+const messages = document.getElementById('chatbotMessages');
+const input = document.getElementById('chatbotInput');
+const sendBtn = document.getElementById('chatbotSend');
+let history = JSON.parse(localStorage.getItem('chatHistory') || '[]');
+let firstTime = history.length === 0;
+function init() {
+  if (localStorage.getItem('chatOpen') === 'open') toggle(true);
+  history.forEach(m => addMessage(m.text, m.who, m.quickReplies));
+  if (firstTime) {
+    firstTime = false;
+    bot("Hello there! I'm your AI assistant. How can I help?", ["What can you do?", "Tell me about your company"]);
+  }
+  icon.addEventListener('click', () => toggle(true));
+  closeBtn.addEventListener('click', () => toggle(false));
+  sendBtn.addEventListener('click', sendHandler);
+  input.addEventListener('keypress', e => e.key === 'Enter' && sendHandler());
+}
+function toggle(open) {
+  container.classList.toggle('active', open);
+  icon.classList.toggle('active', open);
+  if (open) localStorage.setItem('chatOpen', 'open');
+  else localStorage.removeItem('chatOpen');
+}
+function sendHandler() {
+  const text = input.value.trim();
+  if (!text) return;
+  input.value = '';
+  addMessage(text, 'user');
+  botResponse(text);
+}
+function addMessage(text, who, quickReplies) {
+  const message = document.createElement('div');
+  message.className = `message ${who}`;
+  const content = document.createElement('div');
+  content.className = 'message-content';
+  content.innerText = text;
+  message.appendChild(content);
+  const time = document.createElement('div');
+  time.className = 'message-time';
+  time.innerText = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  message.appendChild(time);
+  messages.appendChild(message);
+  setTimeout(() => message.classList.add('visible'), 10);
+  messages.scrollTop = messages.scrollHeight;
+  history.push({ text, who });
+  localStorage.setItem('chatHistory', JSON.stringify(history));
+}
+function bot(text, quickReplies) {
+  setTimeout(() => addMessage(text, 'bot', quickReplies), 800);
+}
+function botResponse(userText) {
+  if (userText.toLowerCase().includes('company')) {
+    bot('We are a leading company providing tech solutions worldwide.');
+  } else if (userText.toLowerCase().includes('help')) {
+    bot('Sure! I can assist with your queries about our services.');
+  } else {
+    bot('Sorry, could you please elaborate?');
+  }
+}
+init();
+})();
+</script>
+</body>
+</html>
