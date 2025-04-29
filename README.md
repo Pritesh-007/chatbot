@@ -62,7 +62,7 @@ Here's how you can help:
 
 ## 📝 License
 
-This project is open-source under the [MIT License](LICENSE).  
+This project is open-source.
 Feel free to use it, modify it, and contribute back! 🤝
 
 ---
