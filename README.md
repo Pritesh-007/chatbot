@@ -2,16 +2,16 @@ Here’s a polished `README.md` you can use for your GitHub project, filled with
 
 ---
 
-# 🤖 Persistent AI Chatbot
+# 🤖 Chatbot
 
-Welcome to the **Persistent AI Chatbot** project! 🚀
+Welcome to the **Chatbot** project! 🚀
 
 This is a modern, mobile-responsive chatbot that saves chat history locally, remembers its open/close state, shows typing animations, quick reply buttons, and has a beautiful minimal design. 🧠💬
 
 ---
 
 ## ✨ Features
-- 💬 **Persistent chat history** (stored in localStorage)
+- 💬 **Chat history** (stored in localStorage)
 - 🧠 **Simulated AI responses** with quick replies
 - 📱 **Fully mobile responsive**
 - 🛡️ **Lightweight and secure** (no external dependencies)
